@@ -1,0 +1,5 @@
+/node_modules
+/.venv
+mcp_server.log
+/src/__pycache__/
+.env
