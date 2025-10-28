@@ -156,18 +156,19 @@ def search(query):
     if score < 0.8:
         logging.info("Answer score below threshold, initiating drafting process.")
         answer = evaluator.drafting(answer)
-        evaluator.evaluate(answer, answering_embedding)
+        score = evaluator.evaluate(answer, answering_embedding)
     
     evaluation_text = evaluator.format_evaluation_results()
     final_answer = f"{answer}\n\nEvaluation:\n{evaluation_text}"
 
     try:
-        CacheDB(
-            query=query,
-            answer=final_answer,
-            embedding=embedding_model.encode(answer),
-        ).save()
-        logging.info("Successfully saved to cache")
+        if score >= 0.65:
+            CacheDB(
+                query=query,
+                answer=final_answer,
+                embedding=embedding_model.encode(answer),
+            ).save()
+            logging.info("Successfully saved to cache")
     except Exception as e:
         logging.error(f"Failed to save to cache: {e}")
     
