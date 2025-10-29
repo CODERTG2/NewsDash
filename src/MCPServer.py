@@ -40,6 +40,8 @@ logging.basicConfig(
 deepseek_client = DeepSeekClient()
 model = "deepseek-reasoner"
 
+convo_history = []
+
 def format_chunks_for_llm(chunks):
     """Format chunks with metadata for LLM citation."""
     formatted_chunks = []
@@ -172,6 +174,8 @@ def search(query):
     except Exception as e:
         logging.error(f"Failed to save to cache: {e}")
     
+    convo_history.append({"query": query, "answer": final_answer, "chunks": formatted_chunks})
+    
     return final_answer
         
 
@@ -186,6 +190,80 @@ def can_answer(query):
     if "true" in response["message"]["content"].lower():
         return True
     return False
+
+@mcp.tool()
+def follow_up(query):
+    prompt = f"""
+    Check if the follow-up question can be answered based on the previous conversation history.
+    Previous Conversation History: {convo_history}
+    Follow-up Question: {query}
+    Guidelines:
+    - If the follow-up question can be answered based on the previous conversation history, respond with "Yes".
+    - If the follow-up question is not related to the conversation history, respond with "New Chat".
+    - If the follow-up question is related to the conversation history but cannot be answered based on it, respond with "No".
+    
+    Example outputs:
+    "No"
+    "Yes"
+    "New Chat"
+
+    Your response should be one of the three options only:
+    """
+    response = deepseek_client.chat(
+        messages=[
+            {"role": "system", "content": "You are an expert at determining if a follow-up question can be answered based on previous conversation history."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    if "yes" in response["message"]["content"].lower():
+        prompt = f"""
+        You will answer the user's follow-up question based on the previous conversation history.
+        Previous Conversation History: {convo_history}
+        Follow-up Question: {query}
+        Guidelines:
+        - Use the previous conversation history to answer the follow-up question.
+        - If the follow-up question cannot be answered based on the previous conversation, say "I'm sorry, I don't have enough information to answer that question. Try a new chat."
+        - Provide a clear and concise answer.
+        Answer:
+        """
+
+        response = deepseek_client.chat(
+            messages=[
+                {"role": "system", "content": "You are an expert at answering follow-up questions based on previous conversation history."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        convo_history.append({"query": query, "answer": response["message"]["content"]})
+        return response["message"]["content"]
+    
+    elif "new chat" in response["message"]["content"].lower():
+        return "Make a new chat to ask this question since it cannot be answered with the given context and/or isn't related."
+    else:
+        part_answer = search(query)
+        prompt = f"""
+        You will answer the user's follow-up question based on the previous conversation history and the partial answer found.
+        Change the new partial answer to fit the context of the previous conversation history.
+        Previous Conversation History: {convo_history}
+        Follow-up Question: {query}
+        Partial Answer: {part_answer}
+        Guidelines:
+        - Use the previous conversation history and the partial answer to answer the follow-up question.
+        - If the follow-up question cannot be answered based on the previous conversation and the partial answer, say "I'm sorry, I don't have enough information to answer that question. Try a new chat."
+        - Provide a clear and concise answer.
+        Answer:
+        """
+        response = deepseek_client.chat(
+            messages=[
+                {"role": "system", "content": "You are an expert at answering follow-up questions based on previous conversation history and a partial answer."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        convo_history.append({"query": query, "answer": response["message"]["content"]})
+        return response["message"]["content"]
+
+@mcp.tool()
+def clear_history():
+    convo_history.clear()
 
 if __name__ == "__main__":
     logging.info("Starting MCP server...")
