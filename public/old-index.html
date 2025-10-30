@@ -46,39 +46,6 @@
             margin: 0 auto 40px;
             text-align: center;
             animation: fadeInDown 0.6s ease-out;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .header-content {
-            flex: 1;
-            text-align: center;
-        }
-
-        .clear-button {
-            background: #262730;
-            border: 1px solid #3d3d3d;
-            border-radius: 8px;
-            padding: 10px 16px;
-            color: #fafafa;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .clear-button:hover {
-            background: #2d2d37;
-            border-color: #ff4b4b;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 75, 75, 0.2);
-        }
-
-        .clear-button:active {
-            transform: translateY(0);
         }
 
         @keyframes fadeInDown {
@@ -213,87 +180,6 @@
 
         .message-content::selection {
             background: rgba(255, 75, 75, 0.3);
-        }
-
-        /* Markdown styling */
-        .message-content h1, 
-        .message-content h2, 
-        .message-content h3, 
-        .message-content h4, 
-        .message-content h5, 
-        .message-content h6 {
-            margin: 0.8em 0 0.4em;
-            color: #fafafa;
-            font-weight: 600;
-        }
-
-        .message-content h1 { font-size: 1.8em; }
-        .message-content h2 { font-size: 1.5em; }
-        .message-content h3 { font-size: 1.3em; }
-
-        .message-content p {
-            margin: 0.6em 0;
-            line-height: 1.6;
-        }
-
-        .message-content ul, 
-        .message-content ol {
-            margin: 0.6em 0 0.6em 1.5em;
-            line-height: 1.8;
-        }
-
-        .message-content li {
-            margin: 0.3em 0;
-        }
-
-        .message-content code {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.2em 0.4em;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            color: #ffc107;
-        }
-
-        .message-content pre {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 12px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 1em 0;
-            border: 1px solid #3d3d3d;
-        }
-
-        .message-content pre code {
-            background: transparent;
-            padding: 0;
-            color: #fafafa;
-        }
-
-        .message-content a {
-            color: #ff4b4b;
-            text-decoration: underline;
-            transition: color 0.2s;
-        }
-
-        .message-content a:hover {
-            color: #ff7070;
-        }
-
-        .message-content strong {
-            font-weight: 600;
-            color: #fafafa;
-        }
-
-        .message-content em {
-            font-style: italic;
-            color: #e0e0e0;
-        }
-
-        .message-content hr {
-            border: none;
-            border-top: 1px solid #3d3d3d;
-            margin: 1.5em 0;
         }
 
         .typing-indicator {
@@ -509,14 +395,8 @@
 </head>
 <body>
     <div class="header">
-        <div style="width: 120px;"></div> <!-- Spacer for centering -->
-        <div class="header-content">
-            <h1>NewsDash</h1>
-            <p>Your AI-Powered News Assistant</p>
-        </div>
-        <button class="clear-button" onclick="clearChat()">
-            🧹 Clear
-        </button>
+        <h1>NewsDash</h1>
+        <p>Your AI-Powered News Assistant</p>
     </div>
 
     <div class="chat-container">
@@ -531,17 +411,17 @@
 
         <div class="input-section">
             <div class="suggested-prompts">
-                <button class="prompt-button" onclick="sendPrompt('What are the latest developments in AI technology?')">
-                    <span>🤖 AI developments</span>
+                <button class="prompt-button" onclick="sendPrompt('What are the top headlines today?')">
+                    <span>📰 Top headlines today</span>
                 </button>
-                <button class="prompt-button" onclick="sendPrompt('Latest climate change news and initiatives')">
-                    <span>🌍 Climate news</span>
+                <button class="prompt-button" onclick="sendPrompt('Latest technology news')">
+                    <span>💻 Technology news</span>
                 </button>
-                <button class="prompt-button" onclick="sendPrompt('Recent breakthroughs in science and technology')">
-                    <span>� Science news</span>
+                <button class="prompt-button" onclick="sendPrompt('Business and finance updates')">
+                    <span>💼 Business updates</span>
                 </button>
-                <button class="prompt-button" onclick="sendPrompt('Global economic updates and market trends')">
-                    <span>📈 Economy updates</span>
+                <button class="prompt-button" onclick="sendPrompt('World news summary')">
+                    <span>🌍 World news</span>
                 </button>
             </div>
 
@@ -563,11 +443,8 @@
         const messagesContainer = document.getElementById('messages');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
-        
-        // Conversation state
-        let hasConversation = false;
 
-        function addMessage(role, content, isHTML = false) {
+        function addMessage(role, content) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${role}`;
             
@@ -577,12 +454,7 @@
             
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
-            
-            if (isHTML) {
-                contentDiv.innerHTML = content;
-            } else {
-                contentDiv.textContent = content;
-            }
+            contentDiv.textContent = content;
             
             messageDiv.appendChild(avatar);
             messageDiv.appendChild(contentDiv);
@@ -618,49 +490,6 @@
             }
         }
 
-        function mdToHtml(mdRaw) {
-            if (!mdRaw) return "";
-            // Trim leading/trailing whitespace
-            let s = String(mdRaw).trim()
-                .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-            s = s.replace(/```([\s\S]*?)```/g, (_,code) => `<pre><code>${code}</code></pre>`);
-            s = s.replace(/^\s*---\s*$/gm, '<hr>');
-
-            s = s
-                .replace(/^###### (.*)$/gm,'<h6>$1</h6>')
-                .replace(/^##### (.*)$/gm,'<h5>$1</h5>')
-                .replace(/^#### (.*)$/gm,'<h4>$1</h4>')
-                .replace(/^### (.*)$/gm,'<h3>$1</h3>')
-                .replace(/^## (.*)$/gm,  '<h2>$1</h2>')
-                .replace(/^# (.*)$/gm,   '<h1>$1</h1>');
-
-            s = s
-                .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-                .replace(/\*(.+?)\*/g,'<em>$1</em>')
-                .replace(/`([^`]+)`/g,'<code>$1</code>')
-                .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
-                .replace(/(^|[^"])(https?:\/\/[^\s<>"']+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
-
-            s = s.replace(/(^|\n)((?:[-*] .*(?:\n|$))+)/g, (_,lead,block) => {
-                const items = block.trim().split('\n').map(l => l.replace(/^[-*] /,'').trim()).filter(Boolean).map(t=>`<li>${t}</li>`).join('');
-                return `${lead}<ul>${items}</ul>`;
-            });
-
-            s = s.replace(/(^|\n)((?:\d+\. .*(?:\n|$))+)/g, (_,lead,block) => {
-                const items = block.trim().split('\n').map(l => l.replace(/^\d+\. /,'').trim()).filter(Boolean).map(t=>`<li>${t}</li>`).join('');
-                return `${lead}<ol>${items}</ol>`;
-            });
-
-            const parts = s.split(/\n{2,}/).map(chunk => {
-                if (/^\s*<(h\d|ul|ol|pre|blockquote|hr)/.test(chunk)) return chunk;
-                if (chunk.trim().startsWith('<') && chunk.trim().endsWith('>')) return chunk;
-                return `<p>${chunk.replace(/\n/g,'<br>')}</p>`;
-            }).filter(p => p.trim()); // Filter out empty paragraphs
-            
-            return parts.join('\n');
-        }
-
         async function sendMessage() {
             const message = messageInput.value.trim();
             
@@ -674,59 +503,18 @@
             // Show typing indicator
             showTypingIndicator();
             
-            try {
-                // Determine if this is a follow-up query
-                const toolName = hasConversation ? 'follow_up' : 'search';
-                
-                console.log(`Using tool: ${toolName} for query: "${message}"`);
-                
-                const response = await fetch('/api/mcp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        name: toolName, 
-                        arguments: { query: message } 
-                    })
-                });
-                
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const result = await response.json();
-
-                // Mark that we now have a conversation
-                hasConversation = true;
-
+            // Simulate API call delay
+            // TODO: Replace this with your actual RAG model API call
+            setTimeout(() => {
                 removeTypingIndicator();
                 
-                // Parse MCP response
-                let content = '';
-                if (result && typeof result === 'object' && Array.isArray(result.content)) {
-                    content = result.content.map(item => {
-                        if (item?.type === 'text') {
-                            return item.text;
-                        }
-                        return '';
-                    }).join('\n');
-                } else if (result && typeof result === 'object' && typeof result.content === 'string') {
-                    content = result.content;
-                } else if (typeof result === 'string') {
-                    content = result;
-                } else {
-                    content = JSON.stringify(result, null, 2);
-                }
-
-                // Convert markdown to HTML
-                const htmlContent = mdToHtml(content);
+                // TODO: Replace this placeholder response with actual API response
+                const response = "I'm connected to your RAG model! Replace this with your news API integration.";
+                addMessage('assistant', response);
                 
-                addMessage('assistant', htmlContent, true);
-                
-            } catch (error) {
-                console.error('Search failed:', error);
-                removeTypingIndicator();
-                addMessage('assistant', `Sorry, an error occurred: ${error.message}`);
-            } finally {
                 sendButton.disabled = false;
                 messageInput.focus();
-            }
+            }, 1500);
         }
 
         function sendPrompt(prompt) {
@@ -737,33 +525,6 @@
         function handleKeyPress(event) {
             if (event.key === 'Enter') {
                 sendMessage();
-            }
-        }
-
-        async function clearChat() {
-            // Clear the UI
-            messagesContainer.innerHTML = `
-                <div class="message assistant">
-                    <div class="avatar">🤖</div>
-                    <div class="message-content">
-                        Chat cleared! Let's start fresh. 👇
-                    </div>
-                </div>
-            `;
-            
-            // Reset conversation state
-            hasConversation = false;
-            
-            // Clear conversation history on MCP server
-            try {
-                await fetch('/api/mcp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: 'clear_history', arguments: {} })
-                });
-                console.log('Conversation history cleared on server');
-            } catch (error) {
-                console.error('Failed to clear history on server:', error);
             }
         }
 
