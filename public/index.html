@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>UI Tester — Medical Diagnostic Device Research</title>
+        <title>NewsDash</title>
   <style>
     /*final*/
     :root{
@@ -14,21 +14,14 @@
       --bg:#FFFEFA;
       --surface:#f8fafc; --text:#0f172a; --muted:#475569; --border:#e2e8f0; --code-bg:#f8fafc;
 
-      --glow: rgba(59,130,246,.32); --glow-strong: rgba(59,130,246,.55);
     }
     html[data-theme="dark"]{
       --bg:#0b1120; --surface:#0f172a; --text:#e5e7eb; --muted:#cbd5e1; --border:#1e293b; --code-bg:#0b1220;
-      --glow: rgba(125,211,252,.38); --glow-strong: rgba(103,232,249,.65);
     }
 
     html[data-sidebar="closed"]{
       --center-max: 1120px; 
     }
-
-    html[data-glow="off"] .glowable { box-shadow:none !important; text-shadow:none !important; }
-    html[data-glow="off"] .app-title { text-shadow:none !important; }
-    html[data-glow="off"] .chip:hover { box-shadow:none !important; }
-    html[data-glow="off"] .btn.is-on { animation:none !important; box-shadow:none !important; }
 
     html, body { transition: background-color var(--slow), color var(--slow), border-color var(--slow); }
     body{
@@ -40,22 +33,12 @@
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial;
     }
 
-    .sponsor-logo{
-      position: fixed;
-      z-index: 1200;
-      top: 12px; right: 12px;
-      height: clamp(72px, 10vw, 120px);
-      width: auto;
-      background: transparent; border:0; box-shadow:none; filter:none;
-      pointer-events: none; 
-    }
-
     .sidebar{
       position: fixed; z-index: 1000;
       left:0; top:0; bottom:0; width:var(--sidebar-w);
       background:var(--surface); border-right:1px solid var(--border);
       padding:16px; overflow:auto;
-      box-shadow: 0 16px 40px rgba(0,0,0,.15), 0 0 24px var(--glow);
+      box-shadow: 0 16px 40px rgba(0,0,0,.15);
       transition: transform var(--slow), opacity var(--slow);
     }
     html[data-sidebar="closed"] .sidebar{ transform: translateX(-102%); opacity:0; pointer-events:none; }
@@ -97,7 +80,7 @@
       width:36px; height:60px; border-radius:0 12px 12px 0;
       display:flex; align-items:center; justify-content:center;
       background:var(--surface); color:var(--text); border:1px solid var(--border);
-      box-shadow: 0 6px 16px rgba(0,0,0,.15), 0 0 20px var(--glow);
+      box-shadow: 0 6px 16px rgba(0,0,0,.15);
       transition:left var(--fast), background-color var(--slow), color var(--slow), border-color var(--slow);
       cursor:pointer;
     }
@@ -120,27 +103,122 @@
       transform: scale(1.015);
     }
 
-    .center-wrap{ flex:1 0 auto; display:grid; place-items:center; min-height: calc(100vh - 2*var(--gutter)); }
-    .center-stack{ width:100%; max-width:var(--center-max); display:grid; gap:16px; transition:max-width var(--slow) ease; }
+    .center-wrap{ 
+      flex:1 0 auto; 
+      display:flex;
+      flex-direction: column;
+      min-height: calc(100vh - 2*var(--gutter)); 
+    }
+    .center-stack{ 
+      width:100%; 
+      max-width:var(--center-max); 
+      margin: 0 auto;
+      display:flex; 
+      flex-direction: column;
+      gap:16px; 
+      transition:max-width var(--slow) ease; 
+    }
 
     .header{
-      display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center;
-      background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,.08), 0 0 0 1px var(--border), 0 0 24px var(--glow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      width: 100%;
+      padding: 12px 0;
+      background:var(--surface);
+      border-bottom:1px solid var(--border);
+      margin-bottom: 20px;
     }
 
-    .mainlogo{
-      display:flex; justify-content:center; align-items:center;
-      margin-top:-14px;
+    .header-content {
+      max-width: var(--center-max);
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
     }
-    .logo-crop{
-      width:260px; 
-      height:220px; 
-      overflow:hidden; border-radius:10px;
+
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 24px;
+      background: color-mix(in srgb, var(--surface) 97%, transparent);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 16px rgba(0,0,0,.03);
+      max-height: calc(100vh - 180px);
+      overflow-y: auto;
+      scroll-behavior: smooth;
     }
-    .logo-crop img{
-      display:block; width:100%; height:100%; object-fit:contain;
-      filter: drop-shadow(0 0 18px var(--glow));
+
+    .chat-message {
+      display: flex;
+      gap: 12px;
+      max-width: 100%;
+      transition: all 0.3s ease-out;
+      animation: messageSlide 0.4s ease-out;
+    }
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-icon {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .bot-icon {
+      background: var(--blue-600);
+    }
+
+    .user-icon {
+      background: var(--muted);
+      position: relative;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .user-icon::before {
+      content: "⚡";
+      color: var(--muted);
+    }
+
+    .message-content {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      position: relative;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: messageAppear 0.3s ease-out forwards;
+    }
+    @keyframes messageAppear {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .app-title{
@@ -148,7 +226,6 @@
       background:linear-gradient(90deg, var(--blue-600), var(--blue-500), var(--sky-300), var(--blue-600));
       -webkit-background-clip:text; background-clip:text; color:transparent;
       background-size:200% 100%; animation:titleShine 10s linear infinite;
-      text-shadow:0 0 22px var(--glow);
       position: relative; display:inline-block; isolation:isolate;
     }
     @keyframes titleShine { 0%{background-position:0% 0} 100%{background-position:200% 0} }
@@ -157,7 +234,7 @@
     .mode-chip{
       display:inline-flex; align-items:center; gap:8px; padding:.45rem .7rem; border-radius:999px;
       border:1px solid var(--border); background:rgba(255,255,255,0.5);
-      box-shadow: 0 8px 20px rgba(0,0,0,.08), 0 0 0 1px var(--border), 0 0 18px var(--glow);
+      box-shadow: 0 8px 20px rgba(0,0,0,.08), 0 0 0 1px var(--border);
       font-weight:800;
     }
     html[data-theme="dark"] .mode-chip{ background:rgba(15,23,42,0.5); }
@@ -172,30 +249,44 @@
     .app-title:hover{ text-shadow: 0 0 30px var(--glow-strong), 0 0 8px rgba(255,255,255,.35); }
     @keyframes shineSweep{ from { left:-150%; } to { left:150%; } }
 
-    .examples{ display:flex; flex-direction:column; gap:8px; align-items:center; margin-top:2px; }
-    .examples-title{ font-size:.9rem; color:var(--muted); text-shadow: 0 0 6px color-mix(in srgb, var(--glow) 50%, transparent); }
-    .chips{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:var(--center-max); }
+    .examples{ display:flex; flex-direction:column; gap:16px; align-items:center; margin-top:8px; }
+    .examples-title{ font-size:.95rem; color:var(--muted); margin-bottom:4px; }
+    .chips{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; max-width:var(--center-max); padding:4px 0; }
     .chip{
       border:1px solid var(--border);
-      background: linear-gradient(180deg, color-mix(in oklab, var(--surface) 88%, transparent), color-mix(in oklab, var(--surface) 94%, transparent));
+      background: var(--surface);
       color: var(--text);
-      border-radius:999px; padding:.40rem .70rem; font-size:.90rem; line-height:1;
-      box-shadow: 0 6px 16px rgba(0,0,0,.06), 0 0 10px var(--glow);
-      cursor:pointer; transition: transform var(--fast), box-shadow var(--fast), background-color var(--fast), border-color var(--fast);
+      border-radius:12px; 
+      padding:.6rem 1rem; 
+      font-size:.95rem; 
+      line-height:1.4;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+      cursor:pointer; 
+      transition: all var(--fast);
     }
     html[data-theme="dark"] .chip{
       background: linear-gradient(180deg, color-mix(in oklab, var(--surface) 75%, transparent), color-mix(in oklab, var(--surface) 85%, transparent));
       border-color: color-mix(in srgb, var(--border) 85%, var(--text) 15%);
     }
-    .chip:hover{ transform: translateY(-1px); box-shadow: 0 12px 22px rgba(0,0,0,.10), 0 0 18px var(--glow-strong); }
-    .chip:focus-visible{ outline:3px solid color-mix(in srgb, var(--blue-500) 55%, transparent); outline-offset:2px; }
+    .chip:hover{ 
+      background: color-mix(in srgb, var(--surface) 98%, var(--blue-500));
+      border-color: var(--blue-500);
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    }
+    .chip:focus-visible{ 
+      outline: none;
+      border-color: var(--blue-500);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue-500) 25%, transparent);
+    }
 
     .search-card{
-      background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px;
-      box-shadow: 0 10px 24px rgba(0,0,0,.08), 0 0 0 1px var(--border), 0 0 24px var(--glow);
+      width: 100%;
     }
-    html[data-theme="dark"] .search-card{ background:var(--surface); }
-    .search-row{ display:grid; grid-template-columns: 1fr 56px; gap:10px; }
+    .search-row{ 
+      display:grid; 
+      grid-template-columns: 1fr 56px; 
+      gap:10px;
+    }
 
     .search-input{
       padding:1rem 1rem; border-radius:12px; border:1px solid var(--border);
@@ -209,25 +300,24 @@
       border:1px solid transparent; border-radius:var(--radius);
       background:linear-gradient(135deg, var(--blue-600), var(--blue-500));
       color:#fff; padding:.75rem 1rem; font-weight:800;
-      box-shadow:0 8px 20px rgba(59,130,246,.25), 0 0 18px var(--glow);
-      transition: transform var(--fast), box-shadow var(--fast), filter var(--fast);
+      box-shadow:0 1px 3px rgba(0,0,0,.1);
+      transition: all var(--fast);
       cursor:pointer;
     }
-    .btn:hover{ transform:translateY(-1px); box-shadow:0 14px 30px rgba(59,130,246,.28), 0 0 26px var(--glow-strong); filter:saturate(1.05); }
+    .btn:hover{ transform:translateY(-1px); }
 
     .btn.secondary{
       background:transparent; color:var(--text); border:1px solid var(--border);
-      box-shadow:0 0 10px var(--glow);
     }
     .btn.secondary.is-active{
       font-weight:900;
-      box-shadow:0 0 0 2px var(--blue-500) inset, 0 0 22px var(--glow-strong);
+      box-shadow:0 0 0 2px var(--blue-500) inset;
+      background: color-mix(in srgb, var(--blue-500) 8%, transparent);
     }
     .btn.is-on{
-      box-shadow:0 0 0 2px var(--blue-600) inset, 0 0 30px var(--glow-strong);
-      animation:glowPulse 2.6s ease-in-out infinite;
+      box-shadow:0 0 0 2px var(--blue-600) inset;
+      background: color-mix(in srgb, var(--blue-600) 8%, transparent);
     }
-    @keyframes glowPulse{0%,100%{box-shadow:0 0 0 2px var(--blue-600) inset, 0 0 26px var(--glow-strong);}50%{box-shadow:0 0 0 2px var(--blue-600) inset, 0 0 38px var(--glow-strong);} }
 
     .loader{
       border:6px solid rgba(148,163,184,.25); border-top:6px solid var(--blue-500);
@@ -242,9 +332,25 @@
       box-shadow:0 10px 24px rgba(0,0,0,.08), 0 0 22px rgba(34,197,94,.35);
     }
     .typing-container{
-      border-radius:var(--radius); padding:12px 16px; border:1px solid var(--border);
-      background:#fff; box-shadow:0 10px 24px rgba(0,0,0,.08), 0 0 22px var(--glow);
-      white-space:pre-wrap; word-wrap:break-word;
+      border-radius:var(--radius); 
+      padding:12px 16px; 
+      border:1px solid var(--border);
+      background:#fff; 
+      box-shadow:0 10px 24px rgba(0,0,0,.08), 0 0 22px var(--glow);
+      white-space:pre-wrap; 
+      word-wrap:break-word;
+      position: relative;
+    }
+    .typing-container::after {
+      content: '█';
+      display: inline-block;
+      animation: blink 1s step-end infinite;
+      margin-left: 2px;
+      color: var(--blue-500);
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
     }
     html[data-theme="dark"] .typing-container{ background:var(--surface); }
 .result-card,
@@ -284,9 +390,7 @@
   </style>
 </head>
 <body>
-  <img class="sponsor-logo" src="/assets/logoimg.png" alt="Sponsor logo" />
-
-  <aside class="sidebar glowable" id="sidebar" aria-label="Sidebar">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar">
     <div class="sidebar-content">
       <div class="section">
         <h3 class="section-title">Customize UI</h3>
@@ -309,42 +413,6 @@
         </div>
 
         <div class="side-card">
-          <div class="field">
-            <label>Glow Effects</label>
-            <div class="row">
-              <button type="button" class="btn secondary is-active" id="glowBtn" aria-pressed="true">✨ Glow: On</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <hr class="divider" />
-
-      <div class="section">
-        <h3 class="section-title">Optimize RAG</h3>
-
-        <div class="side-card">
-          <div class="field">
-            <label for="chunks">Chunks used: <span id="chunksVal">8</span></label>
-            <input id="chunks" type="range" min="1" max="10" step="1" value="8" />
-          </div>
-        </div>
-
-        <div class="side-card">
-          <div class="field">
-            <label for="articles">Articles retrieved: <span id="articlesVal">3</span></label>
-            <input id="articles" type="range" min="1" max="5" step="1" value="3" />
-          </div>
-        </div>
-
-        <div class="side-card">
-          <div class="field">
-            <label for="temp">Creativity (LLM Temperature): <span id="tempVal">0.50</span></label>
-            <input id="temp" type="range" min="0" max="1" step="0.05" value="0.5" />
-          </div>
-        </div>
-
-        <div class="side-card">
           <div class="row">
             <button type="button" class="btn" id="clearBtn">🧹 Clear Chat</button>
           </div>
@@ -353,44 +421,56 @@
     </div>
   </aside>
 
-  <button type="button" id="sidebarLatch" class="latch glowable" aria-label="Close sidebar" aria-expanded="true" title="Toggle sidebar">❮</button>
+  <button type="button" id="sidebarLatch" class="latch" aria-label="Close sidebar" aria-expanded="true" title="Toggle sidebar">❮</button>
 
   <div class="app" id="appRoot">
     <div class="center-wrap">
       <div class="center-stack">
-        <div class="mainlogo">
-          <div class="logo-crop">
-            <img src="/assets/mainlogo.png" alt="MDDS logo">
-          </div>
-        </div>
-
-        <div class="header glowable">
-          <h1 class="app-title">Medical Diagnostic Device Research</h1>
-          <div class="app-sub" id="greeting">What would you like to search?</div>
-          <div class="row">
-            <div id="modeChip" class="mode-chip glowable" title="Current color mode">
-              <span class="dot"></span><span id="modeChipText">Light Mode</span>
+        <div class="header">
+          <div class="header-content">
+            <h1 class="app-title">NewsDash</h1>
+            <div class="row">
+              <div id="modeChip" class="mode-chip" title="Current color mode">
+                <span class="dot"></span><span id="modeChipText">Light Mode</span>
+              </div>
+              <button type="button" class="btn secondary" id="normalBtn">📄 Normal</button>
+              <button type="button" class="btn secondary" id="deepBtn">🔎 Deep</button>
+              <button type="button" class="btn secondary" id="intelligentBtn">🧠 Intelligent</button>
             </div>
-            <button type="button" class="btn secondary" id="normalBtn">📄 Normal</button>
-            <button type="button" class="btn secondary" id="deepBtn">🔎 Deep</button>
-            <button type="button" class="btn secondary" id="intelligentBtn">🧠 Intelligent</button>
           </div>
         </div>
 
-        <section class="examples" aria-label="Suggested prompts">
-          <div class="examples-title">Suggested prompts — click to insert, then press <b>Enter</b> to run</div>
-          <div id="promptList" class="chips"></div>
-        </section>
-
-        <div class="search-card glowable">
-          <div class="search-row">
-            <input id="query" class="search-input" type="text" placeholder="Search medical devices, papers, or terms..." />
-            <button type="button" class="btn" id="searchBtn" title="Search">🔍</button>
+        <div class="chat-container">
+          <div class="chat-message">
+            <div class="message-icon bot-icon">🤖</div>
+            <div class="message-content">
+              <div class="app-sub" id="greeting">What would you like to search?</div>
+            </div>
           </div>
-        </div>
 
-        <div id="statusArea"></div>
-        <div id="resultArea"></div>
+          <div class="chat-message">
+            <div class="message-icon bot-icon">🤖</div>
+            <div class="message-content">
+              <div class="examples-title">Here are some suggested prompts you can try:</div>
+              <div id="promptList" class="chips"></div>
+            </div>
+          </div>
+
+          <div class="chat-message">
+            <div class="message-icon user-icon"></div>
+            <div class="message-content">
+              <div class="search-card">
+                <div class="search-row">
+                  <input id="query" class="search-input" type="text" placeholder="Inquire about current events, global news, or trending topics..." />
+                  <button type="button" class="btn" id="searchBtn" title="Search">🔍</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="statusArea"></div>
+          <div id="resultArea"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -434,9 +514,7 @@
 
     // preset prompts
     const samplePrompts = [
-      "In the context of cross-device federated learning for mobile health diagnostics, what is the FedLoss algorithm?",
-      "What are the basic statistical aspects for the clinical validation of an AI/ML-enabled diagnostic model?",
-      "How was the Mobile Device Interface (MDI) potentiostat prototype functionally verified?"
+      "What are the latest developments in global climate change initiatives and their economic impact?"
     ];
 
     // initialize 
@@ -725,14 +803,40 @@
     }
 
     function showResult(resultHTML){
-      els.statusArea && (els.statusArea.innerHTML = `<div class="success-card glowable"><b>Success</b>: Results are ready.</div>`);
-      const box = document.createElement('div'); box.className='typing-container glowable';
-      if (els.resultArea){ els.resultArea.innerHTML=''; els.resultArea.appendChild(box); }
+      els.statusArea && (els.statusArea.innerHTML = `<div class="chat-message">
+        <div class="message-icon bot-icon">🤖</div>
+        <div class="message-content">
+          <div class="success-card"><b>Success</b>: Results are ready.</div>
+        </div>
+      </div>`);
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'chat-message';
+      messageDiv.innerHTML = `
+        <div class="message-icon bot-icon">🤖</div>
+        <div class="message-content">
+          <div class="typing-container"></div>
+        </div>
+      `;
+      const box = messageDiv.querySelector('.typing-container');
+      
+      if (els.resultArea){ 
+        els.resultArea.innerHTML=''; 
+        els.resultArea.appendChild(messageDiv);
+      }
+      
       const plain = stripTags(resultHTML);
       let pos=0; const step=14;
       state.typingTimer = setInterval(()=>{
-        if(pos < plain.length){ box.textContent = plain.slice(0,pos) + '█'; pos+=step; }
-        else { clearInterval(state.typingTimer); box.classList.add('result'); box.innerHTML = resultHTML; }
+        if(pos < plain.length){ 
+          box.textContent = plain.slice(0,pos) + '█'; 
+          pos+=step; 
+        }
+        else { 
+          clearInterval(state.typingTimer); 
+          box.classList.add('result'); 
+          box.innerHTML = resultHTML; 
+        }
       }, 8);
     }
 
