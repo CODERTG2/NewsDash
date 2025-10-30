@@ -375,7 +375,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-**Tanmay Shubh Garg**
+**Tanmay Garg**
 - GitHub: [@CODERTG2](https://github.com/CODERTG2)
 - Repository: [NewsDash](https://github.com/CODERTG2/NewsDash)
 
