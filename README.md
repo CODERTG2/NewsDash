@@ -8,6 +8,7 @@ NewsDash is an intelligent news aggregation and question-answering system that l
 
 - **Multi-Layer RAG Architecture**: Combines semantic search, chunking, and ranking for optimal information retrieval
 - **Intelligent Query Processing**: Breaks down complex queries into multiple search terms for better article retrieval
+- **Conversational Follow-ups**: Automatically detects and handles follow-up questions based on conversation history
 - **Semantic Caching**: MongoDB-backed caching system with similarity-based retrieval (85% threshold)
 - **Source Citation**: Automatically cites sources with metadata (author, date, title, URL)
 - **Answer Quality Evaluation**: Multi-metric evaluation system including:
@@ -16,7 +17,7 @@ NewsDash is an intelligent news aggregation and question-answering system that l
   - Query-to-answer similarity (relevance)
 - **Iterative Refinement**: Automatic answer improvement when quality scores fall below threshold (0.8)
 - **Model Context Protocol (MCP) Integration**: Exposes functionality via MCP server for integration with AI assistants
-- **Web Interface**: Clean, modern UI for interactive queries
+- **Modern Web Interface**: Clean, responsive UI with dark/light themes and real-time query processing
 
 ## 🏗️ Architecture
 
@@ -24,9 +25,11 @@ NewsDash is an intelligent news aggregation and question-answering system that l
 
 #### Core Components
 
-1. **MCPServer.py**: FastMCP server exposing two main tools:
-   - `search(query)`: Main entry point for question answering
+1. **MCPServer.py**: FastMCP server exposing four main tools:
+   - `search(query)`: Main entry point for question answering with news articles
+   - `follow_up(query)`: Handles follow-up questions using conversation history
    - `can_answer(query)`: Validates if a question can be answered with news articles
+   - `clear_history()`: Clears the conversation history
 
 2. **APIClient.py**: EventRegistry API integration for news article retrieval
    - Fetches relevant articles based on keywords
@@ -66,11 +69,20 @@ NewsDash is an intelligent news aggregation and question-answering system that l
 ### Frontend (Node.js + Express)
 
 - **server.js**: Express server with MCP client integration
+  - Serves static frontend files
+  - Proxies requests to MCP server via `/api/mcp` endpoint
+  - Handles graceful shutdown and error logging
 - **MCPClientManager.js**: Manages MCP client connection to Python server
+  - Establishes stdio transport connection to Python MCP server
+  - Provides tool calling interface
+  - Includes automatic tool discovery and logging
 - **public/index.html**: Modern web interface with:
-  - Dark/light theme toggle
-  - Real-time query processing
-  - Source citation display
+  - Dark/light theme toggle with smooth transitions
+  - Conversational interface with follow-up support
+  - Real-time query processing with typing animation
+  - Source citation display with markdown rendering
+  - Sidebar configuration panel (temperature, chunks, articles)
+  - Clear button to reset conversation history
 
 ## 📋 Prerequisites
 
@@ -125,6 +137,19 @@ nltk
 npm install
 ```
 
+**Required Node.js packages:**
+```json
+{
+  "express": "^5.1.0",
+  "@modelcontextprotocol/sdk": "^1.0.4"
+}
+```
+
+You can install them manually with:
+```bash
+npm install express@^5.1.0 @modelcontextprotocol/sdk@^1.0.4
+```
+
 ### 4. Environment Configuration
 
 Create a `.env` file in the root directory:
@@ -159,8 +184,18 @@ nltk.download('punkt')
 Run the MCP server directly for integration with AI assistants:
 
 ```bash
+# Using mcp dev
 mcp dev src/MCPServer.py
+
+# Or run directly with Python
+python src/MCPServer.py
 ```
+
+Available MCP tools:
+- `search` - Answer questions using news articles
+- `follow_up` - Handle follow-up questions with conversation context
+- `can_answer` - Check if a question can be answered with news
+- `clear_history` - Clear conversation history
 
 ### Option 2: Web Interface
 
@@ -174,9 +209,21 @@ npm start
 
 3. Enter your question in the interface and get answers with citations!
 
+4. Ask follow-up questions - the system automatically maintains conversation context
+
+5. Click "Clear" to reset the conversation and start fresh
+
 ### Example Queries
 
+**Initial Query:**
 - "What are the latest developments in AI regulation?"
+
+**Follow-up Queries:**
+- "What countries are leading this effort?"
+- "When did these regulations start?"
+- "How will this affect tech companies?"
+
+**Other Topics:**
 - "Who won the Nobel Prize in Physics in 2024?"
 - "What is the current status of climate change negotiations?"
 - "What are the recent breakthroughs in quantum computing?"
@@ -185,21 +232,31 @@ npm start
 
 ```mermaid
 graph TD
-    A[User Query] --> B{Cache Hit?}
-    B -->|Yes| C[Return Cached Answer]
-    B -->|No| D[Query Processing]
-    D --> E[Generate Keywords]
-    E --> F[Fetch Articles via EventRegistry]
-    F --> G[Chunk Articles]
-    G --> H[Generate Embeddings]
-    H --> I[Rank Chunks]
-    I --> J[Generate Answer with DeepSeek]
-    J --> K{Score >= 0.8?}
-    K -->|No| L[Refine Answer]
-    K -->|Yes| M[Format with Citations]
-    L --> M
-    M --> N[Cache Result]
-    N --> O[Return Answer]
+    A[User Query] --> B{First Query or Follow-up?}
+    B -->|Follow-up| C[Check Conversation History]
+    C --> D{Can Answer from History?}
+    D -->|Yes| E[Answer from History]
+    D -->|No| F[Fetch Additional Context]
+    F --> G[Combine History + New Context]
+    B -->|First Query| H{Cache Hit?}
+    H -->|Yes| I[Return Cached Answer]
+    H -->|No| J[Query Processing]
+    J --> K[Generate Keywords]
+    K --> L[Fetch Articles via EventRegistry]
+    L --> M[Chunk Articles]
+    M --> N[Generate Embeddings]
+    N --> O[Rank Chunks]
+    O --> P[Generate Answer with DeepSeek]
+    P --> Q{Score >= 0.8?}
+    Q -->|No| R[Refine Answer]
+    Q -->|Yes| S[Format with Citations]
+    R --> S
+    S --> T[Cache Result]
+    T --> U[Store in Conversation History]
+    U --> V[Return Answer]
+    G --> V
+    E --> V
+    I --> U
 ```
 
 ## 📊 Performance Optimization
@@ -236,17 +293,37 @@ graph TD
     }
   }
   ```
+  
+  Or for follow-up:
+  ```json
+  {
+    "name": "follow_up",
+    "arguments": {
+      "query": "Your follow-up question"
+    }
+  }
+  ```
 
 ### MCP Tools
 
-- `search(query: str)`: Main Q&A function
-- `can_answer(query: str)`: Validates question answerability
+- `search(query: str)`: Main Q&A function - searches news articles and returns cited answer
+- `follow_up(query: str)`: Handles follow-up questions using conversation history
+- `can_answer(query: str)`: Validates if question can be answered with news articles
+- `clear_history()`: Clears conversation history for fresh start
 
 ## 🧪 Testing
 
 ```bash
-# Test the MCP server
+# Test the MCP server directly
 python -c "from src.MCPServer import search; print(search('What is the latest news on AI?'))"
+
+# Test follow-up functionality
+python src/MCPServer.py
+# Then in another terminal, use the web interface to test follow-ups
+
+# Test via web interface
+npm start
+# Navigate to http://localhost:3000
 ```
 
 ## 📦 Project Structure

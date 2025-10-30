@@ -433,9 +433,6 @@
               <div id="modeChip" class="mode-chip" title="Current color mode">
                 <span class="dot"></span><span id="modeChipText">Light Mode</span>
               </div>
-              <button type="button" class="btn secondary" id="normalBtn">📄 Normal</button>
-              <button type="button" class="btn secondary" id="deepBtn">🔎 Deep</button>
-              <button type="button" class="btn secondary" id="intelligentBtn">🧠 Intelligent</button>
             </div>
           </div>
         </div>
@@ -489,9 +486,6 @@
       lightBtn: $('lightBtn'),
       darkBtn: $('darkBtn'),
       glowBtn: $('glowBtn'),
-      normalBtn: $('normalBtn'),
-      deepBtn: $('deepBtn'),
-      intelligentBtn: $('intelligentBtn'),
       clearBtn: $('clearBtn'),
       temp: $('temp'),
       tempVal: $('tempVal'),
@@ -510,7 +504,7 @@
     };
 
     // state
-    const state = { dark:false, searchMode:'normal', username:"", temperature:0.1, typingTimer:null, sidebarOpen:true, glow:true, chunks:3, articles:3 };
+    const state = { dark:false, username:"", typingTimer:null, sidebarOpen:true, glow:true, hasConversation: false };
 
     // preset prompts
     const samplePrompts = [
@@ -525,15 +519,8 @@
       setTheme(!!state.dark);
       setGlow( state.glow !== false );
       setSidebar(true, true);
-      setSearchMode(state.searchMode || 'normal');
 
       els.name && (els.name.value = state.username || '');
-      els.temp && (els.temp.value = state.temperature);
-      els.tempVal && (els.tempVal.textContent = Number(state.temperature).toFixed(2));
-      els.chunks && (els.chunks.value = state.chunks ?? 8);
-      els.chunksVal && (els.chunksVal.textContent = String(state.chunks ?? 8));
-      els.articles && (els.articles.value = state.articles ?? 3);
-      els.articlesVal && (els.articlesVal.textContent = String(state.articles ?? 3));
       els.greeting && (els.greeting.textContent = state.username ? `Hello ${state.username}, what would you like to search?` : 'What would you like to search?');
 
       renderPrompts();
@@ -544,38 +531,29 @@
       on(els.darkBtn, 'click',  () => setTheme(true));
       on(els.glowBtn, 'click', () => setGlow(!state.glow));
 
-      // search modes
-      on(els.normalBtn, 'click', () => setSearchMode('normal'));
-      on(els.deepBtn, 'click', () => setSearchMode('deep'));
-      on(els.intelligentBtn, 'click', () => setSearchMode('intelligent'));
-
       // housekeeping
-      on(els.clearBtn, 'click', () => {
+      on(els.clearBtn, 'click', async () => {
         clearInterval(state.typingTimer || 0);
         els.query && (els.query.value = '');
         els.statusArea && (els.statusArea.innerHTML = '');
         els.resultArea && (els.resultArea.innerHTML = '');
+        
+        // Reset conversation state
+        state.hasConversation = false;
+        
+        // Clear conversation history on MCP server
+        try {
+          await fetch('/api/mcp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: 'clear_history', arguments: {} })
+          });
+          console.log('Conversation history cleared');
+        } catch (error) {
+          console.error('Failed to clear history:', error);
+        }
       });
 
-      // controls
-      on(els.temp, 'input', (e) => {
-        const v = Number(e.target.value);
-        state.temperature = isFinite(v) ? v : 0.5;
-        els.tempVal && (els.tempVal.textContent = state.temperature.toFixed(2));
-        persist();
-      });
-      on(els.chunks, 'input', (e) => {
-        const v = Math.max(1, Math.min(10, Number(e.target.value)));
-        state.chunks = v;
-        els.chunksVal && (els.chunksVal.textContent = String(v));
-        persist();
-      });
-      on(els.articles, 'input', (e) => {
-        const v = Math.max(1, Math.min(5, Number(e.target.value)));
-        state.articles = v;
-        els.articlesVal && (els.articlesVal.textContent = String(v));
-        persist();
-      });
       on(els.name, 'input', (e) => {
         state.username = String(e.target.value || '').trim();
         els.greeting && (els.greeting.textContent = state.username ? `Hello ${state.username}, what would you like to search?` : 'What would you like to search?');
@@ -624,15 +602,6 @@
         els.glowBtn.textContent = state.glow ? '✨ Glow: On' : '✨ Glow: Off';
         els.glowBtn.setAttribute('aria-pressed', state.glow.toString());
       }
-      persist();
-    }
-
-    // search mode
-    function setSearchMode(mode){
-      state.searchMode = mode;
-      els.normalBtn && els.normalBtn.classList.toggle('is-active', mode === 'normal');
-      els.deepBtn && els.deepBtn.classList.toggle('is-active', mode === 'deep');
-      els.intelligentBtn && els.intelligentBtn.classList.toggle('is-active', mode === 'intelligent');
       persist();
     }
 
@@ -685,47 +654,27 @@
 
     async function performSearch(query) {
       try {
-        let toolName, toolArgs;
-        switch(state.searchMode) {
-          case 'normal':      
-            toolName = 'normal_search';      
-            toolArgs = { 
-              input_query: query, 
-              temp: state.temperature, 
-              k_chunks: state.chunks 
-            }; 
-            break;
-          case 'deep':        
-            toolName = 'deep_search';        
-            toolArgs = { 
-              input_query: query, 
-              temp: state.temperature, 
-              k_chunks: state.chunks, 
-              k_articles: state.articles 
-            }; 
-            break;
-          case 'intelligent': 
-            toolName = 'intelligent_search'; 
-            toolArgs = { query: query }; 
-            break;
-          default:            
-            toolName = 'normal_search';      
-            toolArgs = { 
-              input_query: query, 
-              temp: state.temperature, 
-              k_chunks: state.chunks 
-            };
-        }
-
+        // Determine if this is a follow-up query
+        const toolName = state.hasConversation ? 'follow_up' : 'search';
+        
+        console.log(`Using tool: ${toolName} for query: "${query}"`);
+        
         const response = await fetch('/api/mcp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: toolName, arguments: toolArgs })
+          body: JSON.stringify({ 
+            name: toolName, 
+            arguments: { query: query } 
+          })
         });
+        
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const result = await response.json();
 
-        const resultHTML = formatSearchResult(result, query, state.searchMode);
+        // Mark that we now have a conversation
+        state.hasConversation = true;
+
+        const resultHTML = formatSearchResult(result, query);
         showResult(resultHTML);
       } catch (error) {
         console.error('Search failed:', error);
@@ -776,12 +725,18 @@
       return parts.join('\n');
     }
 
-    function formatSearchResult(result, query, mode) {
-      const modeLabel = mode.charAt(0).toUpperCase() + mode.slice(1);
+    function formatSearchResult(result, query) {
       let content = '';
 
+      // Handle MCP server response format
       if (result && typeof result === 'object' && Array.isArray(result.content)) {
-        content = result.content.map(item => item?.type === 'text' ? item.text : '').join('\n');
+        // MCP returns content as array of objects with type and text
+        content = result.content.map(item => {
+          if (item?.type === 'text') {
+            return item.text;
+          }
+          return '';
+        }).join('\n');
       } else if (result && typeof result === 'object' && typeof result.content === 'string') {
         content = result.content;
       } else if (typeof result === 'string') {
@@ -794,11 +749,10 @@
 
       return `
         <div class="result">
-          <h1>${modeLabel} Search Results: ${escapeHtml(query)}</h1>
+          <h1>Search Results: ${escapeHtml(query)}</h1>
           <div class="md-output" style="background: var(--surface); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
             ${mdHTML}
           </div>
-          <p><em>Search mode: ${modeLabel} | Temperature: ${state.temperature.toFixed(2)} | Chunks: ${state.chunks} | Articles: ${state.articles}</em></p>
         </div>`;
     }
 

@@ -23,15 +23,40 @@ async function startServer() {
 
         app.post('/api/mcp', async (req, res) => {
             try {
+                console.log('Received MCP request:', req.body);
                 const result = await mcpClient.callTool(req.body);
+                console.log('Sending MCP response:', result);
                 res.json(result);
             } catch (error) {
-                res.status(500).json({ error: error.message });
+                console.error('MCP tool call error:', error);
+                res.status(500).json({ 
+                    error: error.message,
+                    details: error.stack 
+                });
             }
         });
 
-        app.listen(PORT, () => {
+        const server = app.listen(PORT, () => {
             console.log(`Server running on http://localhost:${PORT}`);
+        });
+
+        // Graceful shutdown
+        process.on('SIGTERM', async () => {
+            console.log('SIGTERM signal received: closing HTTP server');
+            server.close(() => {
+                console.log('HTTP server closed');
+            });
+            await mcpClient.disconnect();
+            process.exit(0);
+        });
+
+        process.on('SIGINT', async () => {
+            console.log('SIGINT signal received: closing HTTP server');
+            server.close(() => {
+                console.log('HTTP server closed');
+            });
+            await mcpClient.disconnect();
+            process.exit(0);
         });
     } catch (error) {
         console.error('Failed to start server:', error);
