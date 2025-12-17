@@ -4,6 +4,12 @@
 
 NewsDash is an intelligent news aggregation and question-answering system that leverages state-of-the-art retrieval-augmented generation (RAG) techniques to provide accurate, cited answers to questions about current events. The system retrieves relevant news articles, processes them through semantic chunking and ranking, and generates comprehensive answers with source citations.
 
+## 🏆 Congressional App Challenge Winner
+
+**Winner of the Congressional App Challenge in Illinois' 3rd District!**
+
+This project was created for and won the Congressional App Challenge, a nationwide competition that encourages students to learn coding and create their own apps. We are proud to represent Illinois' 3rd congressional district with this innovative news intelligence platform.
+
 ## 🌟 Features
 
 - **Multi-Layer RAG Architecture**: Combines semantic search, chunking, and ranking for optimal information retrieval
